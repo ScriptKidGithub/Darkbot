@@ -7,15 +7,19 @@ import jishaku
 
 bot = commands.Bot(command_prefix=">>",case_insensitive=True, intents=discord.Intents.all())
 
-@bot.command()
+@bot.command(aliases=["hello"])
 async def hi(ctx):
     await ctx.send(f"Hello {ctx.message.author}")
 
-@bot.command() 
+@bot.command(aliases=["latency"]) 
 async def ping(ctx):
     await ctx.send(f"The bot latency is {round((bot.latency)*1000)} ms")  
 
-@bot.command()
+@bot.command(aliases=["support", "inv"])
+async def invite(ctx):
+    await ctx.send(f"Click [here](https://discord.com/api/oauth2/authorize?client_id=918501406443454484&permissions=8&scope=bot%20applications.commands) to invite the bot")
+
+@bot.command(aliases=["clear"])
 @commands.has_permissions(manage_messages=True)
 async def purge(ctx, amount: int):
     await ctx.channel.purge(limit=amount+1)
