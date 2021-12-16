@@ -1,7 +1,6 @@
-from typing import Counter
 import discord
 from discord.ext import commands
-from discord.ext.commands.errors import MissingRequiredArgument
+from discord.ext.commands.errors import MissingRequiredArgument, MissingRole
 from config import TOKEN
 import jishaku
 import datetime
@@ -49,9 +48,9 @@ def convert(time):
 
     return val * time_dict[unit]
 
-@bot.command()
-@commands.has_role("cheeeese")
-async def gstart(ctx):
+@bot.command(aliases=["gcreate", "gaw", "giveawaycreate"])
+@commands.has_role("Developers")
+async def giveaway(ctx):
     await ctx.send("Let us start with the Giveaway! Answer the questions within 25 seconds!")
 
     questions = ["Which channel should the Giveaway be hosted in?",
@@ -114,7 +113,7 @@ async def gstart(ctx):
     await channel.send(f"Congratulations {winner.mention}! You won {prize}!")
 
 @bot.command()
-@commands.has_role("cheeeese")
+@commands.has_role("Developers")
 async def reroll(ctx, channel : discord.TextChannel, id_ : int):
     try:
         new_msg = await channel.fetch_messsage(id_)
@@ -128,6 +127,11 @@ async def reroll(ctx, channel : discord.TextChannel, id_ : int):
     winner = random.choice(users)
 
     await channel.send(f"Congratulations {winner.mention}! ")
+
+@giveaway.error
+async def giveaway_error(ctx, error):
+    if isinstance(error, MissingRole):
+        await ctx.send(f"You donot have the proper roles to host Giveaways!")
 
 @bot.command() 
 async def github(ctx):
