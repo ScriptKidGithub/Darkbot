@@ -1,1 +1,1 @@
-TOKEN = "OTE4NTAxNDA2NDQzNDU0NDg0.YbILGA.p8FhVEs-fLXm8pp6qBWuM-xkBa8"
+TOKEN = "YOUR BOT TOKEN HERE" ##You can fetch this from https://discord.com/developers/applications
