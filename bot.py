@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
-from discord.ext.commands.errors import MissingRequiredArgument, MissingRole
+from discord.ext.commands.core import bot_has_permissions
+from discord.ext.commands.errors import BotMissingPermissions, MissingPermissions, MissingRequiredArgument, MissingRole
 from config import TOKEN
 import jishaku
 import datetime
@@ -35,6 +36,69 @@ async def purge_error(ctx, error):
     if isinstance(error, MissingRequiredArgument):
         await ctx.send(f"Please specify an amount to delete") 
 
+@bot.command(aliases=["make_role", "role_create"])
+@commands.has_permissions(manage_roles=True) 
+async def create_role(ctx, *, name):
+	guild = ctx.guild
+	await guild.create_role(name=name)
+	await ctx.send(f"Successfully created a role with name `{name}`")
+
+@create_role.error
+async def create_role_error(ctx, error):
+    if isinstance(error, MissingRequiredArgument):
+        await ctx.send(f"Please provide a role name!") 
+
+@create_role.error
+async def create_role_error(ctx, error):
+    if isinstance(error, MissingPermissions):
+        await ctx.send(f"You donot have the proper roles to create roles! Required permission is `MANAGE_ROLES`") 
+
+@bot.command()
+@bot_has_permissions(kick_members=True)
+@commands.has_permissions(kick_members=True)
+async def kick(ctx, user: discord.Member, *, reason):
+  await user.kick(reason=reason)
+  await ctx.send(f"Kicked {user} with a reason `{reason}`")
+
+@kick.error
+async def kick_error(ctx, error):
+    if isinstance(error, MissingRequiredArgument):
+        await ctx.send(f"Please mention someone to kick!") 
+
+@kick.error
+async def kick_error(ctx, error):
+    if isinstance(error, MissingPermissions):
+        await ctx.send(f"You donot have the proper permission to kick members! Required permission is `KICK_MEMBERS`")
+
+@kick.error
+async def kick_error(ctx, error):
+    if isinstance(error, BotMissingPermissions):
+        await ctx.send(f"I donot have the proper permissions to kick members! Required permission is `KICK_MEMBERS`")
+
+############################################
+
+@bot.command()
+@bot_has_permissions(ban_members=True)
+@commands.has_permissions(ban_members=True)
+async def ban(ctx, user: discord.Member, *, reason):
+  await user.ban(reason=reason)
+  await ctx.send(f"Banned {user} with a reason `{reason}`")
+  
+@ban.error
+async def ban_error(ctx, user, error):
+    if isinstance(error, MissingRequiredArgument):
+        await ctx.send(f"Please mention someone to ban!") 
+
+@ban.error
+async def ban_error(ctx, error):
+    if isinstance(error, MissingPermissions):
+        await ctx.send(f"You donot have the proper permission to ban members! Required permission is `BAN_MEMBERS`")
+
+@ban.error
+async def ban_error(ctx, error):
+    if isinstance(error, BotMissingPermissions):
+        await ctx.send(f"I donot have the proper permissions to ban members! Required permission is `BAN_MEMBERS`")  
+
 def convert(time):
     pos = ["s","m","h","d"]
 
@@ -52,7 +116,7 @@ def convert(time):
     return val * time_dict[unit]
 
 @bot.command(aliases=["gcreate", "gaw", "giveawaycreate"])
-@commands.has_role("Developers")
+@commands.has_permissions(manage_guild=True)
 async def giveaway(ctx):
     await ctx.send("Let us start with the Giveaway! Answer the questions within 25 seconds!")
 
@@ -116,7 +180,7 @@ async def giveaway(ctx):
     await channel.send(f"Congratulations {winner.mention}! You won {prize}!")
 
 @bot.command()
-@commands.has_role("Developers")
+@commands.has_permissions(manage_guild=True)
 async def reroll(ctx, channel : discord.TextChannel, id_ : int):
     try:
         new_msg = await channel.fetch_messsage(id_)
@@ -129,18 +193,13 @@ async def reroll(ctx, channel : discord.TextChannel, id_ : int):
 
     winner = random.choice(users)
 
-    await channel.send(f"Congratulations {winner.mention}! ")
-
-@giveaway.error
-async def giveaway_error(ctx, error):
-    if isinstance(error, MissingRole):
-        await ctx.send(f"You donot have the proper roles to host Giveaways!")
+    await channel.send(f"Congratulations {winner.mention}! You are the new winner!")
 
 @bot.command() 
 async def github(ctx):
     await ctx.send(f"https://github.com/ScriptKidGithub/Python-Bot")  
 
-start_time = time.time()
+start_time = time.time() 
 @bot.command(aliases=["up"])
 async def uptime(ctx):
     current_time = time.time()
@@ -153,6 +212,11 @@ bot.load_extension("jishaku")
 @bot.event
 async def on_ready():
     print("Bot is online!")
+
+@giveaway.error
+async def giveaway_error(ctx, error):
+    if isinstance(error, MissingPermissions):
+        await ctx.send(f"You donot have the proper permissions to host Giveaways! Required permission is `MANAGE_SERVER`")
 
 @bot.event
 async def on_command_error(ctx, error):
