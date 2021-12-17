@@ -6,6 +6,9 @@ import jishaku
 import datetime
 import asyncio
 import random
+import time
+from discord.ext.commands import CommandNotFound
+
 
 bot = commands.Bot(command_prefix=">>",case_insensitive=True, intents=discord.Intents.all())
 
@@ -137,10 +140,24 @@ async def giveaway_error(ctx, error):
 async def github(ctx):
     await ctx.send(f"https://github.com/ScriptKidGithub/Python-Bot")  
 
+start_time = time.time()
+@bot.command(aliases=["up"])
+async def uptime(ctx):
+    current_time = time.time()
+    difference = int(round(current_time - start_time))
+    text = str(datetime.timedelta(seconds=difference))
+    await ctx.send(text)
+
 bot.load_extension("jishaku")
 
 @bot.event
 async def on_ready():
     print("Bot is online!")
+
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, CommandNotFound):
+        return
+    raise error
 
 bot.run(TOKEN)
