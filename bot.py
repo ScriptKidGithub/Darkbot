@@ -1,8 +1,9 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from discord.ext.commands.core import bot_has_permissions
 from discord.ext.commands.errors import BotMissingPermissions, MissingPermissions, MissingRequiredArgument, MissingRole
-from config import TOKEN
+from discord.member import Member
+from config import DEFAULT_PREFIX, TOKEN, EMOTE_INFO, STATUS_LOG, DEFAULT_PREFIX, OWNER_ID, ERROR_LOG
 import jishaku
 import datetime
 import asyncio
@@ -10,14 +11,13 @@ import random
 import time
 from discord.ext.commands import CommandNotFound
 
-
-bot = commands.Bot(command_prefix=">>",case_insensitive=True, intents=discord.Intents.all())
+bot = commands.Bot(command_prefix=commands.when_mentioned_or(DEFAULT_PREFIX),case_insensitive=True,owner_id=OWNER_ID,strip_after_prefix=True,intents=discord.Intents.all())
 
 @bot.command(aliases=["hello"])
 async def hi(ctx):
     await ctx.send(f"Hello {ctx.message.author}")
 
-@bot.command(aliases=["latency"]) 
+@bot.command(name="ping", aliases=["latency"], description="Replies with the websocket latency") 
 async def ping(ctx):
     await ctx.send(f"The bot latency is {round((bot.latency)*1000)} ms")  
 
@@ -25,11 +25,13 @@ async def ping(ctx):
 async def invite(ctx):
     await ctx.send(f"Click [here](https://discord.com/api/oauth2/authorize?client_id=918501406443454484&permissions=8&scope=bot%20applications.commands) to invite the bot")
 
-@bot.command(aliases=["clear"])
+kicklog = bot.get_channel(920673040377978930)
+@bot.command(aliases=["clear"], pass_context=True)
 @commands.has_permissions(manage_messages=True)
 async def purge(ctx, amount: int):
     await ctx.channel.purge(limit=amount+1)
-    await ctx.send(f"Sucessfully cleared messages")
+    await ctx.send(f"Sucessfully cleared {amount} messages")
+    await kicklog.send('hello')
 
 @purge.error
 async def purge_error(ctx, error):
@@ -63,7 +65,7 @@ async def kick(ctx, user: discord.Member, *, reason):
 @kick.error
 async def kick_error(ctx, error):
     if isinstance(error, MissingRequiredArgument):
-        await ctx.send(f"Please mention someone to kick!") 
+        await ctx.send("Please mention someone to kick!") 
 
 @kick.error
 async def kick_error(ctx, error):
@@ -73,19 +75,27 @@ async def kick_error(ctx, error):
 @kick.error
 async def kick_error(ctx, error):
     if isinstance(error, BotMissingPermissions):
-        await ctx.send(f"I donot have the proper permissions to kick members! Required permission is `KICK_MEMBERS`")
+        await ctx.send(f"{EMOTE_INFO} Please check my permissions! Required permission is `KICK_MEMBERS`")
 
 ############################################
 
-@bot.command()
+@bot.command(hidden=False)
 @bot_has_permissions(ban_members=True)
 @commands.has_permissions(ban_members=True)
 async def ban(ctx, user: discord.Member, *, reason):
   await user.ban(reason=reason)
   await ctx.send(f"Banned {user} with a reason `{reason}`")
+
+########################33
+@bot.event
+async def on_command_error(ctx, error):
+    channel = bot.get_channel(ERROR_LOG)
+    await channel.send(error)
+    raise error
+
   
 @ban.error
-async def ban_error(ctx, user, error):
+async def ban_error(ctx, error):
     if isinstance(error, MissingRequiredArgument):
         await ctx.send(f"Please mention someone to ban!") 
 
@@ -210,8 +220,23 @@ async def uptime(ctx):
 bot.load_extension("jishaku")
 
 @bot.event
+async def check_bot_additions():
+   _guilds = bot.guilds
+   for g in _guilds:
+    entries = g.audit_logs(action=discord.AuditLogAction.add_bot, limit=1)
+    print("bot is adddeddd")
+
+@bot.event
 async def on_ready():
+
+    status_channel = bot.get_channel(STATUS_LOG)
     print("Bot is online!")
+    await status_channel.send(f"`{datetime.datetime.utcnow()}` | 🟢 Online `({round((bot.latency)*1000)} ms`)")
+    
+#@bot.event
+#async def discord.on_connect():
+ #   status_channel = bot.get_channel(STATUS_LOG)
+  #  await status_channel.send(f"a joined a new server!")
 
 @giveaway.error
 async def giveaway_error(ctx, error):
