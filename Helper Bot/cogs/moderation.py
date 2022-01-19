@@ -16,6 +16,14 @@ class Moderation(commands.Cog):
         else:
             await ctx.channel.purge(limit=amount+1)
             await ctx.send(f"Sucessfully cleared {amount} messages")
+            
+        @commands.command()
+    @commands.has_permissions(kick_members=True) # add timout perms here
+    async def timeout(self, ctx, member: discord.Member, minutes: int):
+        duration = datetime.timedelta(minutes=minutes)
+        await member.timeout_for(duration)
+        await ctx.reply(f"{member} timed out for {minutes} minutes.")
+        await ctx.send(member.timed_out)
 
     @commands.command()
     @commands.has_permissions(kick_members=True)
