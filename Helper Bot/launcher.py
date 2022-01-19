@@ -3,7 +3,7 @@ from discord.ext import commands, tasks
 from discord.ext.commands.core import bot_has_permissions
 from discord.ext.commands.errors import BotMissingPermissions, MissingPermissions, MissingRequiredArgument, MissingRole
 from discord.member import Member
-from config import DEFAULT_PREFIX, TOKEN, EMOTE_INFO, STATUS_LOG, DEFAULT_PREFIX, OWNER_ID, ERROR_LOG
+from config import DEFAULT_PREFIX, TOKEN, DEFAULT_PREFIX, OWNER_ID
 import jishaku
 import datetime
 import asyncio
@@ -38,6 +38,16 @@ async def on_ready():
 async def on_command_error(ctx, error):
     if isinstance(error, CommandNotFound):
         return
+    raise error
+
+@bot.event
+async def on_command_error(ctx, error):
+    embed = discord.Embed(title="Command Error", description=f"```py\n{error}\n```")
+    embed.color = 0x00ff00
+    # embed2 = discord.Embed(title="Command Error", description=f"```py\n{error}\n```")
+    # embed2.color = discord.Color.red
+# add commmand name here - (ctx.command)
+    await ctx.send(embed=embed)
     raise error
 
 bot.run(TOKEN)
