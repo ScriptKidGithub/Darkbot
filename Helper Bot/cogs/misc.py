@@ -3,7 +3,7 @@ from discord.ext import commands
 import datetime
 import time
 
-class General(commands.Cog):
+class Misc(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -30,4 +30,4 @@ class General(commands.Cog):
 ''' 
 
 def setup(bot):
-    bot.add_cog(General(bot))
+    bot.add_cog(Misc(bot))
